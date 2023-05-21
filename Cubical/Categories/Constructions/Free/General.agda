@@ -1,6 +1,6 @@
 -- Free category over a directed graph/quiver
 -- This time without any assumptions on the HLevels of the graph
-{-# OPTIONS --safe --lossy-unification #-}
+{-# OPTIONS --safe #-}
 
 module Cubical.Categories.Constructions.Free.General where
 
@@ -27,8 +27,7 @@ open Functor
 open NatIso hiding (sqRL; sqLL)
 open NatTrans
 
-module _ (G : Graph ℓg ℓg') where
-    -- "Category expressions"
+module FreeCategory (G : Graph ℓg ℓg') where
     data Exp : G .Node → G .Node → Type (ℓ-max ℓg ℓg') where
       ↑_   : ∀ {A B} → G .Edge A B → Exp A B
       idₑ  : ∀ {A} → Exp A A
@@ -81,7 +80,7 @@ module _ (G : Graph ℓg ℓg') where
         aom-type {v}{w} f = PathP (λ i → 𝓒 [ agree-on-objects v i , agree-on-objects w i ]) (F ⟪ f ⟫) ⟦ f ⟧
 
         aom-id : ∀ {v} → aom-type {v} idₑ
-        aom-id = toPathP⁻ (F .F-id ∙ fromPathP⁻ (λ i → 𝓒 .id))
+        aom-id {v} = toPathP⁻ (F .F-id ∙ fromPathP⁻ (λ i → 𝓒 .id {agree-on-objects v i}))
 
         aom-seq : ∀ {v w x} → (f : FreeCat [ v , w ]) (g : FreeCat [ w , x ])
                             → aom-type f
@@ -128,10 +127,12 @@ module _ (G : Graph ℓg ℓg') where
       ∙ sym (free-cat-functor-η-expansion F')
 
 -- co-unit of the 2-adjunction
-ε : ∀ {𝓒 : Category ℓc ℓc'} → Functor (FreeCat (Ugr 𝓒)) 𝓒
-ε {𝓒 = 𝓒} = Semantics.sem (Ugr 𝓒) 𝓒 (Uhom {𝓓 = 𝓒} Id)
+module _ {𝓒 : Category ℓc ℓc'} where
+  open FreeCategory (Ugr 𝓒)
+  ε : Functor FreeCat 𝓒
+  ε = Semantics.sem 𝓒 (Uhom {𝓓 = 𝓒} Id)
 
-ε-reasoning : ∀ {𝓒 : Category ℓc ℓc'}{𝓓 : Category ℓd ℓd'}
+  ε-reasoning : {𝓓 : Category ℓd ℓd'}
             → (𝓕 : Functor 𝓒 𝓓)
-            → 𝓕 ∘F ε ≡ Semantics.sem (Ugr 𝓒) 𝓓 (Uhom 𝓕)
-ε-reasoning {𝓒 = 𝓒}{𝓓 = 𝓓} 𝓕 = Semantics.sem-uniq (Ugr 𝓒) 𝓓 (Uhom 𝓕) refl
+            → 𝓕 ∘F ε ≡ Semantics.sem 𝓓 (Uhom 𝓕)
+  ε-reasoning {𝓓 = 𝓓} 𝓕 = Semantics.sem-uniq 𝓓 (Uhom 𝓕) refl

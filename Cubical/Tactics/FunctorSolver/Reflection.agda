@@ -46,17 +46,17 @@ module ReflectionSolver where
 
     -- Parse the input into an exp
     buildDomExpression : Term → Term
-    buildDomExpression “id” = con (quote idₑ) []
-    buildDomExpression (“⋆” f g) = con (quote _⋆ₑ_) (buildDomExpression f v∷ buildDomExpression g v∷ [])
-    buildDomExpression f = con (quote ↑_) (f v∷ [])
+    buildDomExpression “id” = con (quote FreeCategory.idₑ) []
+    buildDomExpression (“⋆” f g) = con (quote FreeCategory._⋆ₑ_) (buildDomExpression f v∷ buildDomExpression g v∷ [])
+    buildDomExpression f = con (quote FreeCategory.↑_) (f v∷ [])
 
     buildCodExpression : Term → TC Term
-    buildCodExpression “id” = returnTC (con (quote idf) [])
-    buildCodExpression (“⋆” f g) = ((λ fe ge → (con (quote _⋆f_) (fe v∷ ge v∷ []))) <$> buildCodExpression f) <*> buildCodExpression g
+    buildCodExpression “id” = returnTC (con (quote FreeFunctor.idₑ) [])
+    buildCodExpression (“⋆” f g) = ((λ fe ge → (con (quote FreeFunctor._⋆ₑ_) (fe v∷ ge v∷ []))) <$> buildCodExpression f) <*> buildCodExpression g
     buildCodExpression (“F” functor' f) = do
       unify functor functor'
-      returnTC (con (quote F⟪_⟫) (buildDomExpression f v∷ []))
-    buildCodExpression f = returnTC (con (quote ↑f_) (f v∷ []))
+      returnTC (con (quote FreeFunctor.F⟪_⟫) (buildDomExpression f v∷ []))
+    buildCodExpression f = returnTC (con (quote FreeFunctor.↑_) (f v∷ []))
 
   solve-macro : Bool -- ^ whether to give the more detailed but messier error message on failure
               → Term -- ^ The term denoting the domain category

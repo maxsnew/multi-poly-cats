@@ -21,74 +21,182 @@ associativity and unit!
 Wouldn't it be nice if the typechecker could do that for all
 categories? Well we can develop a lemma that will get us there.
 
-Construction:
-Given any category 𝓒 we construct a strict category 𝓒! and a faithful functor 𝓘 : 𝓒 → 𝓒!
+First, we need some help: getting Agda to solve an equation
+definitionally in an arbitrary category won't ever work. Instead,
+we'll ask that our input be given to us as a syntactic expression
+involving compositions and identities, rather than as a morphism in
+𝓒. That is, our input will be not a morphism in 𝓒, but rather in 𝓦 𝓒 =
+F U 𝓒 a *free category* on the *underlying graph* of 𝓒. This would be
+tedious to require the user to do by hand, but we can use some Agda
+macros to parse a goal into such an expression.
 
-Define 𝓒! as Set^|𝓒 .ob|, and define 𝓘 analogous to the Yoneda
-embedding. This is faithful via a similar proof as the Yoneda
-lemma.
+Though the free category is a 2-categorical universal property andasy
+therefore defined up to equivalence of categories, we are concerned
+with *definitional* equalities here and so we need a presentation of
+the free category that satisfies some nice definitional properties.
 
-Unlike the Yoneda embedding, this functor is not generally full, but
-fullness is not needed for our purposes here.
+The universal property of the free category FG on a graph G is a
+1. A homomorphism η : G → UFG
+2. Such that for any ı : G → U 𝓓 there exists a unique E[ı] : F G → 𝓓 such that U(E[ı]) ∘ η ≡ ı.
 
-How can we take advantage of this theorem? Say we have defined two
-parallel morphisms f , g in 𝓒 and we want to prove they are equal, and
-they *would* be definitionally equal if 𝓒 were a definitional
-category. We might try to use the faihful functor 𝓘 above to map them
-into 𝓒! and then hope that it works automatically, but alas, the
-functor 𝓘 is not *definitionally functorial*, so this would amount to
-another tedious proof.
+The intuition is that η is the inclusion of generators: it maps the
+nodes of G to an object of FG and the edges of G to morphisms in
+FG. Then ı is an interpretation of the generators in another category,
+and for the free category this uniquely defines a functor that extends
+the interpretation ı.
 
-Well before we were able to construct a definitional variant of the
-category 𝓒 so can we define a definitional variant of 𝓘 to? Sort of!
-What we can do is define another (non-definitional) category 𝓦 𝓒 with
-1. A *definitional* functor ε : 𝓦 𝓒 → 𝓒
-2. A *definitional* functor ε! : 𝓦 𝓒 → 𝓒!
-3. With a *propositional* equality 𝓘 ∘ ε ≡ ε!
+For our purposes we will require a further definitional property of the free category, that for any ı:
+1. Functoriality (preservation of composition, identity) is *definitional*
+2. Given ı, the equality E[ı] ∘ η ≡ ı is *definitional*
 
-How does this help us? So far 𝓦 𝓒 could be the empty
-category. Intuitively, we need that ε is a *full* functor, so that our
-parallel morphisms f and g can be defined in 𝓦 𝓒. In fact ε is (even
-definitionally) full, but this is not as helpful as it sounds, as the
-proof of fullness is not functorial. We have to give up something, so
-what we will say is that instead of writing f and g, morphisms in 𝓒,
-you need to write instead parallel morphisms fW and gW in 𝓦 𝓒 such
-that ε (fW) = f and ε (gW) = g *definitionally* but whatever
-compositions/identities we need re-written are compositions in 𝓦
-𝓒. That way, ε! will definitionally preserve the compositions, and we
-will get that ε! (fW) is *definitionally* equal to ε! (gW), so the
-type checker can prove it for us. Then by (3) we can conclude that f
-and g are *propositionally* equal, which is what we desired.
+For (1) we say that E[ı] is *definitionally* functorial and (2) we say
+that E[ı] *definitionally* maps the generators according to ı. Why is
+this important? Well remember for our purposes we have some actual
+equation e1 ≡ e2 in 𝓒 which is written as a bunch of compositions in
+𝓒. We will then solve an equation e1' ≡ e2' in FU 𝓒 and want to use
+the functor ε : FU𝓒 → 𝓒 to map this to our original equation. Well it
+is very important that ε map this to *definitionally* the equation e1
+≡ e2 or we'll just be stuck with another tedious proof.
 
-What is the 𝓦 𝓒 we want? It is the *free category* on the underlying
-graph of 𝓒. This category has the same objects as 𝓒 and its morphisms
-are quotiented "category expressions", we throw in all of the
-morphisms of 𝓒 but also new identities and new composites. Note that
-while it looks like we can define a functor 𝓒 → 𝓦 𝓒 by sending every
-morphism to its inclusion in expressions, but this does not preserve
-identity or composition, instead this is only a *graph homomorphism* U
-𝓒 → U (𝓦 𝓒). We call this homomorphism η.
+It's worth considering why this part is non-trivial: there are (very
+useful) presentations of the free category that do not satisfy these
+definitional properties. The most common one is to define the free
+category to have objects be the nodes of G and have morphisms be the
+*paths* in the graph, i.e., inductively generated from id and
+composition of an edge with a path. This is a normalized form and can
+be used for the next part of the solver if desired, but it cannot be
+used here yet, as it is not *definitionally* functorial and does not
+*definitionally* preserve ı:
+1. It does preserve id definitionally, but given an expression (id o
+   f), in this normalized free cat this is definitionally equal to f,
+   and so we will not have that E[ı] (id ∘ f) is definitionally equal
+   to E[ı](id) ∘ E[ı] f = id ∘ E[ı] f
+2. It does not preserve generators definitionally. A generator will be
+   a singleton path (η f ∘ id) and this will be mapped to E[ı] f ∘ id
+   which is not generally definitionally equal to E[ı] f.
 
-This free category has a universal property: given any graph
-homomorphism ı : U 𝓒 → U 𝓓, we can define a functor Ind[ı] : 𝓦 𝓒 → 𝓓 such that
-1. Ind[ı] is definitionally functorial
-2. U(Ind[ı]) ∘ η is definitionally equal to ı
-3. If U F ∘ η ≡ ı then F ≡ Ind[ı] (note these are identifications, not definitional equalities)
+However for the free category at least, it is easy to construct such a
+definitionally well behaved free category as a HIT (in fact a QIT):
+just inductively add in cases for generators, id, composition and the
+equations/isSet. Proving this is the free category is pretty much
+tautological, so we call it the tautological free category.
 
-Then we can define
-1. ε = Ind[id]
-2. ε! = Ind[𝓘]
-3. 𝓘 ∘ ε ≡ ε! means 𝓘 ∘ ε ≡ Ind[𝓘] which by (3) STS U(𝓘 ∘ ε) ∘ η ≡ 𝓘
-   which follows because
+But now we have reduced our original problem of solving an equation e1
+≡ e2 in 𝓒 with a problem of solving a related equation e1' ≡ e2' in 𝓦
+𝓒 = FU𝓒. So how do we solve that equation? What we want is to define a
+third category 𝓦𝓒! with a functor 𝓘 : 𝓦 𝓒 → 𝓦𝓒! which has the
+following nice properties:
+1. 𝓘 is faithful: if 𝓘 ⟪ e1' ⟫ ≡ 𝓘 ⟪ e2' ⟫ then e1' ≡ e2'
+2. if e1' ≡ e2' in 𝓦𝓒 then 𝓘 ⟪ e1' ⟫ ≡ 𝓘 ⟪ e2' ⟫ *definitionally*
 
-   U(𝓘 ∘ ε) ∘ η = U 𝓘 ∘ (Uε o η) ≡ U 𝓘
+One solution, the "syntactic" approach, is to take 𝓦𝓒! to be the free
+category defined with morphisms as paths above. Because this is the
+free category, we can define a functor 𝓘 : 𝓦 𝓒 → F_path 𝓒 that is not
+just faithful but an equivalence of categories. And by sending
+generators to generators, we can get (for closed expressions e1', e2'
+at least) that property (2) holds as well. This works perfectly fine
+but it's a bit tedious to prove, there is a surprising trick that
+works even more easily.
 
-So there is one last bit of tedium here: we must take f and g and
-rewrite them as fW and gW where we replace compositions in 𝓒 with
-compositions in 𝓦𝓒. This *cannot* be done within the theory, as it
-does not respect definitional equality! So this is a meta-operation,
-and so we can either perform it manually using some convenient
-notation or automate it with a meta-program. Fortunately in this case
-the meta-program is fairly easy to write: we essentially parse an Agda
-term into a 𝓦 𝓒 morphism.
+If I give you a category 𝓒 and ask you if you know of any nice
+categories it embeds into with a faithful functor, your first guess
+should probably be the presheaf category on 𝓒, with the Yoneda
+embedding. In fact this almost works, we can try using 𝓦𝓒! = Presheaf
+(𝓦 𝓒), but we don't *quite* have the second property above, because
+morphisms in the presheaf category are *natural* transformations and
+so morphisms come with a *proof* of equality. And though equality of
+morphisms in a category is a proposition, it is only a *path-wise*
+proposition, not a *definitional* proposition. Note that this would
+work with definitional proof irrelevance though! However we can get
+away with a slightly different construction. To get rid of the proofs,
+we can use instead of natural transformations, "possibly unnatural
+transformations", i.e., families of morphisms. The most natural place
+for such morphisms to live is in what I call the "power category" of
+Set by a type X. Then instead of using presheaves on 𝓦𝓒, we can take
+the power of Set raised to the underlying type of objects of 𝓦𝓒. This
+is a bit less familiar than the presheaf category but it is closely
+related: we still get a variant of the Yoneda embedding, but we have
+only a *faithful* functor rather than a *fully faithful*
+functor. Fortunately a faithful functor is all we require. And this
+category has a very nice property: it is *definitionally* unital and
+associative, because composition is just composition of Agda
+functions, which is definitionally unital and associative because
+Agda's definitional equality includes βη equality of functions. Then
+if only 𝓘 were definitionally functorial, we would have property (2)
+because we would map compositions in 𝓦 𝓒 to compositions in 𝓘 and Agda
+would be able to solve them.
 
+Unfortunately it's not actually the case that this "pseudo-Yoneda"
+embedding has property 2. But the nice thing about this free category
+is that we can use its UMP to make an equivalent functor that is! That
+is, given the pseudo Yoneda embedding 𝓘 : 𝓦 𝓒 → Pow (𝓦 𝓒 .ob), we can
+reconstruct it as the definitionally functorial E[U 𝓘 ∘ η], which we
+can prove is path equal to 𝓘 because they agree (definitionally) on
+generators. 
+
+Let's look at an example to see how this all fits together: Consider an equality we'd like to prove in a category 𝓒:
+
+    id ∘ ((g ∘ id) ∘ f) ∘ id ≡ g ∘ (id ∘ f)
+
+These are clearly equal up to associativity and unit, but proving this
+by applying associativities and units explicitly is a chore.
+
+First, we write this as an expression in the free category on 𝓒:
+
+    id ∘ ((η g ∘ id) ∘ η f) ∘ id ≡ η g ∘ (id ∘ η f)
+
+Not so different actually... But now, we apply the functor 𝓘' := E[U 𝓘 ∘ η]
+to the right side:
+    𝓘' ⟪ η g ∘ (id ∘ η f) ⟫
+    = λ x → (𝓘' ⟪ η g ⟫ ∘Set (𝓘' ⟪ id ∘ η f ⟫)) x
+    = λ x → ((λ x → η g ∘ x) ∘Set ((λ x → x) ∘ (λ x → η f ∘ x))) x
+    = (λ x → η g ∘ x) ((λ x → x) ((λ x → η f ∘ x) x))
+    = (λ x → η g ∘ x) ((λ x → x) (η f ∘ x))
+    = (λ x → η g ∘ x) (η f ∘ x)
+    = λ x → η g ∘ (η f ∘ x)
+
+Since the identity morphism gets mapped to the identity function, and
+composition gets mapped to composition of functions, they simply get
+"evaluated away" and we get a fully right associated form. If we apply
+the same thing to the left then we can derive a definitional equality
+to the same form. Then because 𝓘 ≡ 𝓘' and 𝓘 is faithful, we get that
+𝓘' is faithful and therefore the equality
+
+    id ∘ ((η g ∘ id) ∘ η f) ∘ id ≡ η g ∘ (id ∘ η f)
+
+holds in 𝓦 𝓒. Then applying the functor ε : 𝓦 𝓒 → 𝓒, by preservation
+of paths and nice definitional behavior of ε we get the original equality:
+
+    id ∘ ((g ∘ id) ∘ f) ∘ id ≡ g ∘ (id ∘ f)
+
+** Footnote on the power category
+
+The power category is actually a very interesting category: it is
+equivalent to a presheaf category over the discrete category on the
+type of objects, and there is a faithful forgetful functor
+
+   U : Presheaf 𝓒 → Pow 𝓒
+
+that has a left and right adjoints which "build in functoriality" in
+dual ways:
+
+    (L P) c = coend_c' 𝓒 [ c , c' ] × P c'
+    (R P) c = end_c' 𝓒 [ c' , c ] → P c'
+
+Which look *exactly* like the coYoneda and Yoneda lemmas respectively:
+the presheaves are exactly the families of sets equipped with a proof
+that the (co)Yoneda lemma "is true".
+
+Let Pow 𝓒 be the presheaf category on the underlying type of objects
+and Psh 𝓒 be the presheaf category on 𝓒.
+
+Then there is a forgetful functor U : Psh 𝓒 → Pow 𝓒, which has a right
+adjoint R given by (R Q) c = ∀ c'. 𝓒 [ c' , c ] → P c'
+
+P -> R Q =~ U P → Q
+
+η : P >--> R U P
+ε : U (R P) -->> P
+
+
+(TODO: details)

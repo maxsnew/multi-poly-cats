@@ -18,7 +18,7 @@ open import Cubical.Data.Sigma
 
 open import Cubical.Data.Graph.Properties
 open import Cubical.Data.Empty
-open import Cubical.Categories.Constructions.Free.General as Free hiding (module Semantics)
+open import Cubical.Categories.Constructions.Free.General as Free
 open import Cubical.Categories.Constructions.Free.UnderlyingGraph
 
 open import Cubical.Tactics.CategorySolver.Reflection
@@ -52,47 +52,49 @@ substIdToPath {A = A}{B}{x = x} p = funExt λ bx → J (λ by q → subst B (idT
     lem  bx = (λ i → subst B (idToPathRefl i) bx) ∙ transportRefl bx
 
 -- TODO: refactor this and the cat solver to use named modules
-module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node) where
+module FreeFunctor (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node) where
+  module FreeCatG = FreeCategory G
+  open FreeCatG.Exp
+  FG = FreeCatG.FreeCat
+  Exp = FreeCatG.Exp
   data FExp : H .Node → H .Node → Type (((ℓ-max ℓg (ℓ-max ℓg' (ℓ-max ℓh ℓh'))))) where
     -- free category on H with a functor from G to H freely added
-    ↑f_ : ∀ {A B} → H .Edge A B → FExp A B
-    idf : ∀ {A} → FExp A A
-    _⋆f_ : ∀ {A B C} → FExp A B → FExp B C → FExp A C
-    F⟪_⟫ : ∀ {A B} → Exp G A B → FExp (ϕ A) (ϕ B)
+    ↑_ : ∀ {A B} → H .Edge A B → FExp A B
+    idₑ : ∀ {A} → FExp A A
+    _⋆ₑ_ : ∀ {A B C} → FExp A B → FExp B C → FExp A C
+    F⟪_⟫ : ∀ {A B} → Exp A B → FExp (ϕ A) (ϕ B)
 
-    ⋆fIdL : ∀ {A B} (e : FExp A B) → idf ⋆f e ≡ e
-    ⋆fIdR : ∀ {A B} (e : FExp A B) → e ⋆f idf ≡ e
-    ⋆fAssoc : ∀ {A B C D} (e : FExp A B)(f : FExp B C)(g : FExp C D)
-            → (e ⋆f f) ⋆f g ≡ e ⋆f (f ⋆f g)
-    F-idₑ : ∀ {A} → F⟪ idₑ {A = A} ⟫ ≡ idf
-    F-seqₑ : ∀ {A B C} (f : Exp G A B)(g : Exp G B C) → F⟪ f ⋆ₑ g ⟫ ≡ (F⟪ f ⟫ ⋆f F⟪ g ⟫)
+    ⋆ₑIdL : ∀ {A B} (e : FExp A B) → idₑ ⋆ₑ e ≡ e
+    ⋆ₑIdR : ∀ {A B} (e : FExp A B) → e ⋆ₑ idₑ ≡ e
+    ⋆ₑAssoc : ∀ {A B C D} (e : FExp A B)(f : FExp B C)(g : FExp C D)
+            → (e ⋆ₑ f) ⋆ₑ g ≡ e ⋆ₑ (f ⋆ₑ g)
+    F-idₑ : ∀ {A} → F⟪ idₑ {A = A} ⟫ ≡ idₑ
+    F-seqₑ : ∀ {A B C} (f : Exp A B)(g : Exp B C) → F⟪ f ⋆ₑ g ⟫ ≡ (F⟪ f ⟫ ⋆ₑ F⟪ g ⟫)
 
     isSetFExp : ∀ {A B} → isSet (FExp A B)
-
-  FG = FreeCat G
 
   FH : Category _ _
   FH .ob = H .Node
   FH .Hom[_,_] = FExp
-  FH .id = idf
-  FH ._⋆_ = _⋆f_
-  FH .⋆IdL = ⋆fIdL
-  FH .⋆IdR = ⋆fIdR
-  FH .⋆Assoc = ⋆fAssoc
+  FH .id = idₑ
+  FH ._⋆_ = _⋆ₑ_
+  FH .⋆IdL = ⋆ₑIdL
+  FH .⋆IdR = ⋆ₑIdR
+  FH .⋆Assoc = ⋆ₑAssoc
   FH .isSetHom = isSetFExp
 
-  Fϕ : Functor (FreeCat G) FH
+  Fϕ : Functor FG FH
   Fϕ .F-ob = ϕ
   Fϕ .F-hom = F⟪_⟫
   Fϕ .F-id = F-idₑ
   Fϕ .F-seq = F-seqₑ
 
   -- The universal interpretation
-  ηG = η G
+  ηG = FreeCatG.η
 
   ηH : Interp H FH
   ηH $g x = x
-  ηH <$g> x = ↑f x
+  ηH <$g> x = ↑ x
 
   Fϕ-homo : GraphHom G (Ugr FH)
   Fϕ-homo $g x = ϕ x
@@ -105,17 +107,17 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
     module Semantics (ıG : Interp G 𝓒) (ıH : Interp H 𝓓)
                      (ıϕ : Id (𝓕 .F-ob ∘f ıG ._$g_) (ıH ._$g_ ∘f ϕ))
            where
-      semG = Free.Semantics.sem G 𝓒 ıG
+      semG = FreeCatG.Semantics.sem 𝓒 ıG
   
       semH-hom : ∀ {A B} → FExp A B → 𝓓 [ ıH $g A , ıH $g B ]
-      semH-hom (↑f x) = ıH <$g> x
-      semH-hom idf = 𝓓 .id
-      semH-hom (e ⋆f e₁) = semH-hom e ⋆⟨ 𝓓 ⟩ semH-hom e₁
+      semH-hom (↑ x) = ıH <$g> x
+      semH-hom idₑ = 𝓓 .id
+      semH-hom (e ⋆ₑ e₁) = semH-hom e ⋆⟨ 𝓓 ⟩ semH-hom e₁
       semH-hom (F⟪_⟫ {A}{B} x) = transportId (λ (f : G .Node → 𝓓 .ob) → 𝓓 [ f A , f B ]) ıϕ (𝓕 ⟪ semG ⟪ x ⟫ ⟫)
       -- preserves 1-cells
-      semH-hom (⋆fIdL f i) = 𝓓 .⋆IdL (semH-hom f) i
-      semH-hom (⋆fIdR f i) = 𝓓 .⋆IdR (semH-hom f) i
-      semH-hom (⋆fAssoc f f' f'' i) = 𝓓 .⋆Assoc (semH-hom f) (semH-hom f') (semH-hom f'') i
+      semH-hom (⋆ₑIdL f i) = 𝓓 .⋆IdL (semH-hom f) i
+      semH-hom (⋆ₑIdR f i) = 𝓓 .⋆IdR (semH-hom f) i
+      semH-hom (⋆ₑAssoc f f' f'' i) = 𝓓 .⋆Assoc (semH-hom f) (semH-hom f') (semH-hom f'') i
       semH-hom (F-idₑ {A} i) = unbound i
         where
           unbound : transportId (λ f → 𝓓 [ f A , f A ]) ıϕ (𝓕 ⟪ semG ⟪ idₑ ⟫ ⟫) ≡ 𝓓 .id
@@ -136,7 +138,7 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
       semH .F-seq f g = refl
   
       semϕ : Id (𝓕 ∘F semG) (semH ∘F Fϕ)
-      semϕ = pathToId (free-cat-functor-ind G (funcComp 𝓕 semG) (funcComp semH Fϕ) (GrHom≡ aoo aoe)) where
+      semϕ = pathToId (FreeCatG.free-cat-functor-ind (funcComp 𝓕 semG) (funcComp semH Fϕ) (GrHom≡ aoo aoe)) where
         𝓕G = (𝓕 .F-ob ∘f ıG ._$g_)
         Hϕ = (ıH ._$g_ ∘f ϕ)
   
@@ -144,7 +146,7 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
                 → Id {A = G .Node → 𝓓 .ob} f g
                 → Path _ (f v) (g v)
         aoo-gen v f g = J ((λ f' _ → Path _ (f v) (f' v))) refl
-        aoo : (v : Node G) → Path _ (((𝓕 ∘F semG) ∘Interp η G) $g v) (((semH ∘F Fϕ) ∘Interp η G) $g v)
+        aoo : (v : Node G) → Path _ (((𝓕 ∘F semG) ∘Interp ηG) $g v) (((semH ∘F Fϕ) ∘Interp ηG) $g v)
         aoo v = aoo-gen v 𝓕G Hϕ ıϕ
   
         aoe : {v w : Node G} (e : G .Edge v w) →
@@ -172,7 +174,7 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
                                                                    (λ i x → arb𝓓-agree i $g (ϕ x)))
              where
         sem-uniq-G : arb𝓒 ≡ semG
-        sem-uniq-G = Free.Semantics.sem-uniq _ _ _ arb𝓒-agree
+        sem-uniq-G = FreeCatG.Semantics.sem-uniq _ _ arb𝓒-agree
 
         sem-uniq-H : arb𝓓 ≡ semH
         sem-uniq-H = Functor≡ aoo aom where
@@ -182,18 +184,18 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
           aom-type : ∀ {v w} → (f : FH [ v , w ]) → Type _
           aom-type {v}{w} f = PathP (λ i → 𝓓 [ aoo v i , aoo w i ]) (arb𝓓 ⟪ f ⟫) (semH ⟪ f ⟫)
 
-          aom-id : ∀ {v} → aom-type {v} idf
+          aom-id : ∀ {v} → aom-type {v} idₑ
           aom-id = arb𝓓 .F-id ◁ λ i → 𝓓 .id
 
           aom-seq : ∀ {v w x} → {f : FH [ v , w ]} {g : FH [ w , x ]}
                   → aom-type f
                   → aom-type g
-                  → aom-type (f ⋆f g)
+                  → aom-type (f ⋆ₑ g)
           aom-seq hypf hypg = arb𝓓 .F-seq _ _ ◁ λ i → hypf i ⋆⟨ 𝓓 ⟩ hypg i
           ıϕp = idToPath ıϕ
 
           aom-F : ∀ {v w}
-                → (e : FreeCat G [ v , w ])
+                → (e : FG [ v , w ])
                 → PathP (λ i → 𝓓 [ (arb𝓓-agree i $g (ϕ v)) , (arb𝓓-agree i $g (ϕ w)) ])
                         (arb𝓓 ⟪ Fϕ ⟪ e ⟫ ⟫)
                         (transportId (λ (f : G .Node → 𝓓 .ob) → 𝓓 [ f v , f w ]) ıϕ (𝓕 ⟪ semG ⟪ e ⟫ ⟫))
@@ -228,14 +230,14 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
                       the-type = (G .Node → 𝓓 .ob)
                       A = (λ (f : the-type) → 𝓓 [ f v , f w ])
           aom : ∀ {v w : H .Node} (f : FH [ v , w ]) → aom-type f
-          aom (↑f x) = λ i → arb𝓓-agree i <$g> x
-          aom idf = aom-id
-          aom (f ⋆f g) = aom-seq (aom f) (aom g)
+          aom (↑ x) = λ i → arb𝓓-agree i <$g> x
+          aom idₑ = aom-id
+          aom (f ⋆ₑ g) = aom-seq (aom f) (aom g)
           aom F⟪ x ⟫ = aom-F x
           -- Just some isSet→SquareP nonsense
-          aom (⋆fIdL f i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-seq aom-id (aom f)) (aom f) (λ i → arb𝓓 ⟪ ⋆fIdL f i ⟫) (λ i → (semH ⟪ ⋆fIdL f i ⟫)) i
-          aom (⋆fIdR f i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-seq (aom f) aom-id) (aom f ) (λ i → arb𝓓 ⟪ ⋆fIdR f i ⟫) (λ i → semH ⟪ ⋆fIdR f i ⟫) i
-          aom (⋆fAssoc f f₁ f₂ i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-seq (aom-seq (aom f) (aom f₁)) (aom f₂)) (aom-seq (aom f) (aom-seq (aom f₁) (aom f₂))) (λ i → arb𝓓 ⟪ ⋆fAssoc f f₁ f₂ i ⟫) (λ i → semH ⟪ ⋆fAssoc f f₁ f₂ i ⟫) i
+          aom (⋆ₑIdL f i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-seq aom-id (aom f)) (aom f) (λ i → arb𝓓 ⟪ ⋆ₑIdL f i ⟫) (λ i → (semH ⟪ ⋆ₑIdL f i ⟫)) i
+          aom (⋆ₑIdR f i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-seq (aom f) aom-id) (aom f ) (λ i → arb𝓓 ⟪ ⋆ₑIdR f i ⟫) (λ i → semH ⟪ ⋆ₑIdR f i ⟫) i
+          aom (⋆ₑAssoc f f₁ f₂ i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-seq (aom-seq (aom f) (aom f₁)) (aom f₂)) (aom-seq (aom f) (aom-seq (aom f₁) (aom f₂))) (λ i → arb𝓓 ⟪ ⋆ₑAssoc f f₁ f₂ i ⟫) (λ i → semH ⟪ ⋆ₑAssoc f f₁ f₂ i ⟫) i
           aom (F-idₑ i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-F idₑ) aom-id (λ i → arb𝓓 ⟪ F-idₑ i ⟫) (λ i → semH ⟪ F-idₑ i ⟫) i
           aom (F-seqₑ f g i) = isSet→SquareP (λ i j → 𝓓 .isSetHom) (aom-F (f ⋆ₑ g)) (aom-seq (aom-F f) (aom-F g)) (λ i → arb𝓓 ⟪ F-seqₑ f g i ⟫) (λ i → semH ⟪ F-seqₑ f g i ⟫) i
           aom (isSetFExp f f₁ x y i j) k = isSet→SquareP (λ i j → (isOfHLevelPathP {A = λ k → 𝓓 [ aoo _ k , aoo _ k ]} 2 (𝓓 .isSetHom) (arb𝓓 ⟪ isSetFExp f f₁ x y i j ⟫) ((semH ⟪ isSetFExp f f₁ x y i j ⟫))))
@@ -244,3 +246,9 @@ module _ (G : Graph ℓg ℓg') (H : Graph ℓh ℓh') (ϕ : G .Node → H .Node
             (λ i k → aom f k)
             (λ i k → aom f₁ k)
             i j k
+
+        -- sem-uniq-ϕ : Square arb𝓕
+        --                     (idToPath semϕ)
+        --                     (λ i → 𝓕 ∘F sem-uniq-G i)
+        --                     (λ i → sem-uniq-H i ∘F Fϕ)
+        -- sem-uniq-ϕ = {!!}
