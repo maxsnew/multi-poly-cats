@@ -171,7 +171,8 @@ isSetNormalForm {o1}{o2}{e} = isSetRetract {B = IW S P inX (o2 , e)}
 
 -- Here is our goal
 normalize : ∀ {o1}{o2} → (e : FQ [ o1 , o2 ]) → NormalForm e
-normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-hom e FQ.id nil)
+--normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-hom e FQ.id nil)
+normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-hom {!!} {!!} {!!})
   where
   o1-pts : Functor FQ (SET ℓ-zero)
   o1-pts = FQ [ o1 ,-]
