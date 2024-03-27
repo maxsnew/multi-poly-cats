@@ -16,8 +16,8 @@ open import Cubical.HITs.SetQuotients as SetQuotients
 open import Cubical.Categories.Constructions.Quotient
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Properties
-open import Cubical.Categories.Displayed.Section
-open import Cubical.Categories.Displayed.Constructions.Reindex
+open import Cubical.Categories.Displayed.Section.Base
+open import Cubical.Categories.Displayed.Constructions.Reindex as Reindex
 
 private
   variable
@@ -37,25 +37,34 @@ module _ (C : Category ℓ ℓ') where
       QF = QuoFunctor C _~_ ~refl ~cong
 
     open Categoryᴰ
+    open Section
     module _ (Dᴰ : Categoryᴰ C/~ ℓD ℓD') where
       private
         module Dᴰ = Categoryᴰ Dᴰ
 
-      -- TODO: make a macro that applies to Eq.refl in exactly this way
-      reindexᴰQuo : Categoryᴰ C ℓD ℓD'
-      reindexᴰQuo = reindex' Dᴰ QF Eq.refl λ _ _ → Eq.refl
+      module ReindexQuo = EqReindex Dᴰ QF Eq.refl (λ _ _ → Eq.refl)
 
       open Section
-      elim : (F : Section reindexᴰQuo)
+      -- TODO: should elim construct a global section or a local section?
+      elim : (F : GlobalSection ReindexQuo.reindex')
            → (∀ {x y} → (f g : Hom[ x , y ]) → (p : f ~ g) →
-             PathP (λ i → Dᴰ.Hom[ eq/ f g p i ][ F .F-ob x , F .F-ob y ])
-                   (F .F-hom f)
-                   (F .F-hom g))
-           → Section Dᴰ
-      elim F F-resp-∼ .F-ob = F .F-ob
-      elim F F-resp-∼ .F-hom = SetQuotients.elim (λ _ → Dᴰ.isSetHomᴰ)
-        (F .F-hom)
+             PathP (λ i → Dᴰ.Hom[ eq/ f g p i ][ F .F-obᴰ x , F .F-obᴰ y ])
+                   (F .F-homᴰ f)
+                   (F .F-homᴰ g))
+           → GlobalSection Dᴰ
+      elim F F-resp-∼ .F-obᴰ = F .F-obᴰ
+      elim F F-resp-∼ .F-homᴰ = SetQuotients.elim (λ _ → Dᴰ.isSetHomᴰ)
+        (F .F-homᴰ)
         F-resp-∼
-      elim F F-resp-∼ .F-id = F .F-id
-      elim F F-resp-∼ .F-seq =
-        elimProp2 (λ [f] [g] → Dᴰ.isSetHomᴰ _ _) (F .F-seq)
+      elim F F-resp-∼ .F-idᴰ = F .F-idᴰ
+      elim F F-resp-∼ .F-seqᴰ =
+        elimProp2 (λ [f] [g] → Dᴰ.isSetHomᴰ _ _) (F .F-seqᴰ)
+
+    -- TODO: elim' that constructs a local section
+    -- module _ {D : Category ℓD ℓD'}
+    --          (F : Functor C/~ D)
+    --          (Dᴰ : Categoryᴰ D ℓD ℓD')
+    --          where
+    --   elim' : (Fᴰ : Section (F ∘F QF) Dᴰ)
+    --         → Section F Dᴰ
+    --   elim' Fᴰ = GlobalSection→Section Dᴰ F (elim (reindex Dᴰ F) {!ReindexQuo.intro'!} {!!})      

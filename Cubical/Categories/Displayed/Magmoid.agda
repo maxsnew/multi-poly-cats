@@ -71,6 +71,7 @@ module _ {C : Category ℓC ℓC'}
         (R.≡[]-rectify (λ i → ⋆ᴰ' .snd i fᴰ (⋆ᴰ' .snd i gᴰ hᴰ)))
         (Cᴰ.⋆Assocᴰ fᴰ gᴰ hᴰ)
 
+    -- | TODO: rewrite this to be about sections
     module _ {D : Category ℓD ℓD'}{Dᴰ : Categoryᴰ D ℓDᴰ ℓDᴰ'}
              {F : Functor D C}
              (Fᴰ : Functorᴰ F Dᴰ Cᴰ)

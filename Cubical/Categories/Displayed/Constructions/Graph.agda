@@ -18,7 +18,7 @@ open import Cubical.Categories.Bifunctor.Redundant
 open import Cubical.Categories.Profunctor.Relator
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Displayed.Base
-open import Cubical.Categories.Displayed.Base.More as Disp
+open import Cubical.Categories.Constructions.TotalCategory as TotalCat
 open import Cubical.Categories.Displayed.Base.HLevel1Homs as Disp
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Preorder
@@ -57,10 +57,10 @@ module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
   hasPropHomsGraph = hasPropHomsPreorderᴰ Graph'
 
   π₁ : Functor (∫C Graph) C
-  π₁ = BP.Fst C D ∘F Disp.Fst {Cᴰ = Graph}
+  π₁ = BP.Fst C D ∘F TotalCat.Fst {Cᴰ = Graph}
 
   π₂ : Functor (∫C Graph) D
-  π₂ = BP.Snd C D ∘F Disp.Fst {Cᴰ = Graph}
+  π₂ = BP.Snd C D ∘F TotalCat.Fst {Cᴰ = Graph}
 
   -- This is the "universal natural element"
   πElt : NatElt {C = ∫C Graph} (R ∘Flr (π₁ ^opF , π₂))

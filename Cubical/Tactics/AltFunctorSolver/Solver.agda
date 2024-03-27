@@ -21,7 +21,7 @@ open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Base.More
 open import Cubical.Categories.Displayed.Constructions.Weaken
 open import Cubical.Categories.Displayed.Functor.More
-open import Cubical.Categories.Displayed.Section as DisplayedCategory
+open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Preorder hiding (Section; reindex)
 open import Cubical.Categories.Displayed.Properties
 open import Cubical.Categories.Constructions.Free.Category.Quiver as FreeCat

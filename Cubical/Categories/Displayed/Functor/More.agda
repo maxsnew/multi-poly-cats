@@ -2,12 +2,12 @@
 --
 module Cubical.Categories.Displayed.Functor.More where
 
-
 open import Cubical.Foundations.Prelude
 
 open import Cubical.Categories.Category.Base
 open import Cubical.Categories.Functor
 import      Cubical.Data.Equality as Eq
+import      Cubical.Data.Equality.More as Eq
 
 open import Cubical.Categories.Displayed.Base
 open import Cubical.Categories.Displayed.Base.More
@@ -19,18 +19,6 @@ import      Cubical.Categories.Displayed.Reasoning as HomᴰReasoning
 private
   variable
     ℓ ℓB ℓB' ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' ℓE ℓE' : Level
-
--- TODO: move to Equality.Base or something
-
-HEq : {A0 A1 : Type ℓ}(Aeq : A0 Eq.≡ A1) (a0 : A0)(a1 : A1) → Type _
-HEq Aeq a0 a1 = Eq.transport (λ A → A) Aeq a0 Eq.≡ a1
-
-singlP' : {A0 A1 : Type ℓ}(Aeq : A0 Eq.≡ A1) (a : A0) → Type _
-singlP' {A1 = A1} Aeq a = Σ[ x ∈ A1 ] HEq Aeq a x
-
-singl' : {A : Type ℓ}(a : A) → Type _
-singl' {A = A} a = singlP' Eq.refl a
-
 
 module _
   {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
@@ -50,13 +38,12 @@ module _
     module Dᴰ = Categoryᴰ Dᴰ
     module R = HomᴰReasoning Dᴰ
 
-    GF-ob-ty = singl' (F .F-ob)
+    GF-ob-ty = Eq.singl (F .F-ob)
     GF-hom-ty : GF-ob-ty → Type _
-    GF-hom-ty GF-ob = singlP'
+    GF-hom-ty GF-ob = Eq.singlP
       (Eq.ap (λ G-ob → ∀ {x}{y} → C [ x , y ] → D [ G-ob x , G-ob y ])
              (GF-ob .snd))
       (F .F-hom)
-  -- Pro tip: always use this
   module _ (Fᴰ : Functorᴰ F Cᴰ Dᴰ) where
     open Functor
     reindF'-ob : (GF-ob : GF-ob-ty) → ∀ {x} → Cᴰ.ob[ x ] → Dᴰ.ob[ GF-ob .fst x ]
@@ -88,10 +75,11 @@ module _
       R.≡[]-rectify (Fᴰ .F-seqᴰ fᴰ gᴰ)
 
   open Functor
+  -- This is preferable to reindF if the equalities are Refl.
   reindF' : (G : Functor C D)
             (GF-ob≡FF-ob : F .F-ob Eq.≡ G .F-ob)
             (GF-hom≡FF-hom :
-              HEq (Eq.ap (λ F-ob₁ → ∀ {x} {y}
+              Eq.HEq (Eq.ap (λ F-ob₁ → ∀ {x} {y}
                          → C [ x , y ] → D [ F-ob₁ x , F-ob₁ y ])
                          GF-ob≡FF-ob)
                 (F .F-hom)

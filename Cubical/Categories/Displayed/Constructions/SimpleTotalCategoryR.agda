@@ -25,6 +25,7 @@ open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Functor
 
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Reasoning
 open import Cubical.Categories.Displayed.Constructions.Reindex as Reindex
   hiding (intro)
@@ -34,7 +35,10 @@ open import Cubical.Categories.Displayed.Properties
 open import Cubical.Categories.Displayed.Functor
 open import Cubical.Categories.Displayed.Functor.More
 open import Cubical.Categories.Displayed.Instances.Terminal hiding (intro)
-open import Cubical.Categories.Displayed.Base.More as TotalCat
+open import Cubical.Categories.Constructions.TotalCategory as TotalCat
+  hiding (intro)
+open import Cubical.Categories.Displayed.Constructions.TotalCategory as TotalCatᴰ
+  hiding (intro)
 
 private
   variable
@@ -67,22 +71,21 @@ module _
   module _
     {E : Category ℓE ℓE'}
     (F : Functor E C)
-    {Eᴰ : Categoryᴰ E ℓEᴰ ℓEᴰ'}
-    (Fᴰ : Functorᴰ F Eᴰ (weaken C D))
-    (Gᴰ : Functorᴰ (∫F Fᴰ) (Unitᴰ (∫C Eᴰ)) Cᴰ)
+    (Fᴰ : Section F (weaken C D))
+    (Gᴰ : Section (TotalCat.intro F Fᴰ) Cᴰ)
     where
 
     open Functorᴰ
 
-    intro : Functorᴰ F Eᴰ ∫Cᴰsr
-    intro = mk∫ᴰFunctorᴰ Cᴰ F Fᴰ Gᴰ
+    intro : Section F ∫Cᴰsr
+    intro = TotalCatᴰ.intro {C = C}{Cᴰ = weaken C D} Cᴰ F Fᴰ Gᴰ
 
   -- ∀ c , d . Cᴰ (c , d) → Σ[ d' ] Cᴰ (c , d')
   -- This can be defined more generally for ∫Cᴰ
-  Assocᴰsr : Functorᴰ (BP.Fst C D) Cᴰ ∫Cᴰsr
-  Assocᴰsr = intro _ (Wk.intro (BP.Fst C D) (BP.Snd C D))
-    (reindF' _ Eq.refl Eq.refl TotalCat.Snd)
+  -- Assocᴰsr : Functorᴰ (BP.Fst C D) Cᴰ ∫Cᴰsr
+  -- Assocᴰsr = intro _ (Wk.intro (BP.Fst C D) (BP.Snd C D))
+  --   (reindF' _ Eq.refl Eq.refl TotalCat.Snd)
 
   -- Σ[ c ] Σ[ d ] Cᴰ (c , d) → Σ[ cd ] Cᴰ cd
-  Assoc-sr⁻ : Functor (∫C ∫Cᴰsr) (∫C Cᴰ)
-  Assoc-sr⁻ = Assocᴰ {Cᴰ = weaken C D} Cᴰ
+  Assoc : Functor (∫C ∫Cᴰsr) (∫C Cᴰ)
+  Assoc = Assocᴰ {Cᴰ = weaken C D} Cᴰ

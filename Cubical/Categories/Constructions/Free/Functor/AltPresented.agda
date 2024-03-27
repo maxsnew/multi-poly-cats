@@ -21,7 +21,7 @@ open import Cubical.Categories.NaturalTransformation
 
 open import Cubical.Data.Quiver.Base
 
-open import Cubical.Categories.Displayed.Section as Cat
+open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Constructions.Presented as Presented
 open import Cubical.Categories.Constructions.Free.Category.Quiver as FreeCat
   hiding (rec; elim)

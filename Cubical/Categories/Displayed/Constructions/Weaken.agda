@@ -15,14 +15,14 @@ open import Cubical.Foundations.HLevels
 open import Cubical.Data.Sigma
 
 open import Cubical.Categories.Category.Base
-open import Cubical.Categories.Constructions.BinProduct
-  renaming (Fst to FstBP ; Snd to SndBP)
 open import Cubical.Categories.Functor
 
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Properties
 open import Cubical.Categories.Displayed.Functor
-open import Cubical.Categories.Displayed.Instances.Terminal hiding (intro)
+open import Cubical.Categories.Constructions.TotalCategory as TC
+  hiding (intro)
 
 private
   variable
@@ -52,18 +52,26 @@ module _ (C : Category ℓC ℓC') (D : Category ℓD ℓD') where
 module _ {C : Category ℓC ℓC'}
          {D : Category ℓD ℓD'}
          {E : Category ℓE ℓE'}
-         {Eᴰ : Categoryᴰ E ℓEᴰ ℓEᴰ'}
-         (FC : Functor E C)
-         (FD : Functor E D)
+         (F : Functor E C)
+         (G : Functor E D)
          where
   open Category
   open Functor
-  open Functorᴰ
-  intro : Functorᴰ FC Eᴰ (weaken C D)
-  intro .F-obᴰ {x} _ = FD .F-ob x
-  intro .F-homᴰ {f = f} _ = FD .F-hom f
-  intro .F-idᴰ = FD .F-id
-  intro .F-seqᴰ _ _ = FD .F-seq _ _
+  open Section
+  intro : Section F (weaken C D)
+  intro .F-obᴰ x = G .F-ob x
+  intro .F-homᴰ f = G .F-hom f
+  intro .F-idᴰ = G .F-id
+  intro .F-seqᴰ _ _ = G .F-seq _ _
+
+intro⁻ : {C : Category ℓC ℓC'}
+         {D : Category ℓD ℓD'}
+         {E : Category ℓE ℓE'}
+         {F : Functor E C}
+       → Section F (weaken C D)
+       → Functor E D
+intro⁻ {C = C}{D = D}{F = F} Fᴰ =
+  weakenΠ C D ∘F TC.intro F Fᴰ
 
 module _ {B : Category ℓB ℓB'} {C : Category ℓC ℓC'} where
   open Functor

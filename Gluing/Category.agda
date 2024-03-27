@@ -30,10 +30,10 @@ open import Cubical.Categories.NaturalTransformation.More
 open import Cubical.Categories.NaturalTransformation.Base
 open import Cubical.Categories.Constructions.Free.Category.Quiver as Free
 open import Cubical.Categories.Displayed.Base
-open import Cubical.Categories.Displayed.Section as Disp
+open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Properties as Disp
 open import Cubical.Categories.Displayed.Base.More
-open import Cubical.Categories.Displayed.Instances.Sets
+open import Cubical.Categories.Displayed.Instances.Sets.Base
 open import Cubical.Categories.Instances.Sets
 open import Cubical.Categories.Instances.Sets.More
 open import Cubical.Categories.Functors.Constant
@@ -169,9 +169,9 @@ isSetNormalForm {o1}{o2}{e} = isSetRetract {B = IW S P inX (o2 , e)}
             FQ.isSetHom
             (λ _ → isOfHLevelPath 2 (isSetΣ isSetOB (λ _ → FQ.isSetHom)) _ _)))
 
--- Here is our goal
+-- The main theorem/construction
 normalize : ∀ {o1}{o2} → (e : FQ [ o1 , o2 ]) → NormalForm e
-normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-hom e FQ.id nil)
+normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-homᴰ e FQ.id nil)
   where
   o1-pts : Functor FQ (SET ℓ-zero)
   o1-pts = FQ [ o1 ,-]
@@ -179,10 +179,13 @@ normalize {o1} = λ e → subst NormalForm (FQ.⋆IdL e) (S.F-hom e FQ.id nil)
   LogFam : Categoryᴰ FQ _ _
   LogFam = Disp.reindex (SETᴰ ℓ-zero ℓ-zero) o1-pts
 
-  S : Disp.Section LogFam
-  S = Free.elim QUIVER (record { F-ob = λ o e → (NormalForm e) , isSetNormalForm
-                               ; F-hom = λ m e l → cons m l })
-  module S = Disp.Section S
+  -- TODO: should be able to use elim' directly once the definition of
+  -- compFunctorᴰGlobalSection in Section.Base is fixed
+  S : GlobalSection LogFam
+  S = Free.elim QUIVER LogFam (record
+    { _$gᴰ_ = λ o e → (NormalForm e) , isSetNormalForm
+    ; _<$g>ᴰ_ = λ m e l → cons m l })
+  module S = Section S
 
 private
   _ : forget (normalize {c} FQ.id)

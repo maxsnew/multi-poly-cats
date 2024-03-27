@@ -12,6 +12,7 @@ open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Functor
 
 open import Cubical.Categories.Displayed.Base
+open import Cubical.Categories.Displayed.Section.Base
 open import Cubical.Categories.Displayed.Properties
 open import Cubical.Categories.Displayed.Functor
 
@@ -39,6 +40,37 @@ module _ {C : Category ℓC ℓC'} (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ') where
   hasContrHoms→hasPropHoms : hasContrHoms → hasPropHoms
   hasContrHoms→hasPropHoms contrHoms =
     λ f cᴰ cᴰ' → isContr→isProp (contrHoms f cᴰ cᴰ')
+
+module _
+       {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
+       {F : Functor C D}
+       {Dᴰ : Categoryᴰ D ℓDᴰ ℓDᴰ'}
+       where
+  open Category
+  open Functor
+  private
+    module Dᴰ = Categoryᴰ Dᴰ
+  mkSectionPropHoms :
+    (propHoms : hasPropHoms Dᴰ)
+      → (F-obᴰ  : (x : C .ob) → Dᴰ.ob[ F .F-ob x ])
+      → (F-homᴰ : {x y : C .ob}
+        (f : C [ x , y ]) → Dᴰ [ F .F-hom f ][ F-obᴰ x , F-obᴰ y ])
+      → Section F Dᴰ
+  mkSectionPropHoms propHoms F-obᴰ F-homᴰ .Section.F-obᴰ = F-obᴰ
+  mkSectionPropHoms propHoms F-obᴰ F-homᴰ .Section.F-homᴰ = F-homᴰ
+  mkSectionPropHoms propHoms F-obᴰ F-homᴰ .Section.F-idᴰ =
+    isProp→PathP (λ i → propHoms _ _ _) _ _
+  mkSectionPropHoms propHoms F-obᴰ F-homᴰ .Section.F-seqᴰ _ _ =
+    isProp→PathP (λ i → propHoms _ _ _) _ _
+
+  mkSectionContrHoms :
+    (contrHoms : hasContrHoms Dᴰ)
+      → (F-obᴰ  : (x : C .ob) → Dᴰ.ob[ F .F-ob x ])
+      → Section F Dᴰ
+  mkSectionContrHoms contrHoms F-obᴰ = mkSectionPropHoms
+    (hasContrHoms→hasPropHoms Dᴰ contrHoms)
+    F-obᴰ
+      λ {x}{y} f → contrHoms (F .F-hom f) (F-obᴰ x) (F-obᴰ y) .fst
 
 module _
        {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
