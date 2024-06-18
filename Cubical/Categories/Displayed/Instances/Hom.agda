@@ -15,7 +15,8 @@ open import Cubical.Categories.Category
 open import Cubical.Categories.Morphism
 open import Cubical.Categories.Functor
 open import Cubical.Categories.NaturalTransformation
-open import Cubical.Categories.Profunctor.Relator as Relator hiding (Hom)
+open import Cubical.Categories.Profunctor.Relator as Relator
+open import Cubical.Categories.Profunctor.Hom as Relator hiding (Hom)
 open import Cubical.Categories.Constructions.BinProduct
 open import Cubical.Categories.Constructions.BinProduct.More
 open import Cubical.Categories.Displayed.Base

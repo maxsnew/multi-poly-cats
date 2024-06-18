@@ -47,6 +47,8 @@ private
   variable
     ℓB ℓB' ℓC ℓC' ℓD ℓD' ℓS ℓR : Level
 
+open Category
+
 _o-[_]-*_ : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 C o-[ ℓS ]-* D = Bifunctor (C ^op) D (SET ℓS)
 
@@ -55,6 +57,27 @@ C *-[ ℓS ]-o D = Bifunctor C (D ^op) (SET ℓS)
 
 Relatoro* : (C : Category ℓC ℓC') → ∀ ℓS → (D : Category ℓD ℓD') → Type _
 Relatoro* C ℓS D = C o-[ ℓS ]-* D
+
+-- Relator composition notation
+module _ {C : Category ℓC ℓC'} {D : Category ℓD ℓD'} {ℓR} where
+  relSeqL' : ∀ (R : C o-[ ℓR ]-* D) {c' c d}
+            (f : C [ c' , c ]) (r : ⟨ R ⟅ c , d ⟆b ⟩)
+          → ⟨ R ⟅ c' , d ⟆b ⟩
+  relSeqL' R f r = (R ⟪ f ⟫l) r
+
+  infixl 15 relSeqL'
+  syntax relSeqL' R f r = f ⋆l⟨ R ⟩ r
+
+  relSeqR' : ∀ (R : C o-[ ℓR ]-* D) {c d d'}
+            (r : ⟨ R ⟅ c , d ⟆b ⟩) (g : D [ d , d' ])
+          → ⟨ R ⟅ c , d' ⟆b ⟩
+  relSeqR' R r g = (R ⟪ g ⟫r) r
+
+  infixr 15 relSeqR'
+  syntax relSeqR' R r g = r ⋆r⟨ R ⟩ g
+
+  _[_,_]R : (R : C o-[ ℓR ]-* D) → C .ob → D .ob → Type ℓR
+  R [ c , d ]R = ⟨ R ⟅ c , d ⟆b ⟩
 
 module _ {C : Category ℓC ℓC'} {ℓS} {D : Category ℓD ℓD'} where
   Profunctor→Relatoro* : Profunctor C D ℓS → D o-[ ℓS ]-* C
@@ -82,9 +105,9 @@ module _ {C : Category ℓC ℓC'} (R : C o-[ ℓS ]-* C) where
   -- Path
   record NatElt : Type (ℓ-max (ℓ-max ℓC ℓC') ℓS) where
     field
-      N-ob  : (x : C.ob) → ⟨ R ⟅ x , x ⟆b ⟩
+      N-ob  : (x : C.ob) → R [ x , x ]R
       -- It may be useful to include this
-      N-hom× : {x y : C.ob}(f : C [ x , y ]) → ⟨ R ⟅ x , y ⟆b ⟩
+      N-hom× : {x y : C.ob}(f : C [ x , y ]) → R [ x , y ]R
 
       N-ob-hom×-agree : {x : C.ob} → N-hom× C.id ≡ N-ob x
 
@@ -112,6 +135,21 @@ module _ {C : Category ℓC ℓC'} (R : C o-[ ℓS ]-* C) where
       ∙ sym (funExt⁻ (R.Bif-R-seq _ _) (N-ob _))
       ∙ sym (N-natR _)
 
+  record NatEltUnary : Type (ℓ-max (ℓ-max ℓC ℓC') ℓS) where
+    field
+      N-ob : (x : C.ob) → R [ x , x ]R
+      N-nat : ∀ {x y} (f : C [ x , y ])
+            → (f ⋆l⟨ R ⟩ N-ob y) ≡ (N-ob x ⋆r⟨ R ⟩ f)
+
+  open NatElt
+  open NatEltUnary
+  NatEltUnary→NatElt : NatEltUnary → NatElt
+  NatEltUnary→NatElt neu .N-ob = neu .N-ob
+  NatEltUnary→NatElt neu .N-hom× {x}{y} = λ f → f ⋆l⟨ R ⟩ neu .N-ob y
+  NatEltUnary→NatElt neu .N-ob-hom×-agree = funExt⁻ R.Bif-L-id _
+  NatEltUnary→NatElt neu .N-natL f = refl
+  NatEltUnary→NatElt neu .N-natR f = neu .N-nat f
+
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
          {R : D o-[ ℓS ]-* D}
          (α : NatElt R) (F : Functor C D) where
@@ -126,13 +164,3 @@ module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
     ∙ α.N-ob-hom×-agree
   whisker .NatElt.N-natL f = α.N-natL _
   whisker .NatElt.N-natR f = α.N-natR _
-
-Hom : (C : Category ℓC ℓC') → C o-[ ℓC' ]-* C
-Hom = HomBif
-
-NatElt→NatTrans :
-  {C : Category ℓC ℓC'} {D : Category ℓD ℓD'}
-  {F : Functor C D}{G : Functor C D}
-  → NatElt (Hom D ∘Flr (F ^opF , G)) → NatTrans F G
-NatElt→NatTrans ε .NatTrans.N-ob = ε .NatElt.N-ob
-NatElt→NatTrans ε .NatTrans.N-hom = NatElt.N-LR-agree ε
