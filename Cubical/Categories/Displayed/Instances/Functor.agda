@@ -14,10 +14,10 @@ open import Cubical.Categories.Displayed.NaturalTransformation
 
 private
   variable
-    ℓC ℓC' ℓD ℓD' : Level
+    ℓC ℓC' ℓD ℓD' ℓCᴰ ℓCᴰ' ℓDᴰ ℓDᴰ' : Level
 
 module _ {C : Category ℓC ℓC'}{D : Category ℓD ℓD'}
-  (Cᴰ : Categoryᴰ C ℓC ℓC')(Dᴰ : Categoryᴰ D ℓD ℓD') where
+  (Cᴰ : Categoryᴰ C ℓCᴰ ℓCᴰ')(Dᴰ : Categoryᴰ D ℓDᴰ ℓDᴰ') where
 
   open Category
   open Functorᴰ

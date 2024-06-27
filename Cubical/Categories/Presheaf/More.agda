@@ -111,6 +111,11 @@ module UniversalElementNotation {ℓo}{ℓh}
                  → f ≡ f'
   extensionality = isoFunInjective (equivToIso (_ , (universal _))) _ _
 
+  η' : ∀ {c} → {f : C [ c , vertex ]}{p : ⟨ P ⟅ c ⟆ ⟩}
+             → (element ∘ᴾ⟨ C , P ⟩ f) ≡ p
+             → f ≡ intro p
+  η' hyp = extensionality (hyp ∙ sym β)
+
   intro-natural : ∀ {c' c} → {p : ⟨ P ⟅ c ⟆ ⟩}{f : C [ c' , c ]}
                 → intro p ∘⟨ C ⟩ f ≡ intro (p ∘ᴾ⟨ C , P ⟩ f)
   intro-natural = extensionality
