@@ -64,7 +64,7 @@ module _ where
   dom t,f = ⊤
   cod t,f = (↑ ans) × (↑ ans)
 
-  QUIVER : ×Quiver _
+  QUIVER : ×Quiver _ _
   QUIVER .fst = OB
   QUIVER .snd .ProductQuiver.mor = MOR
   QUIVER .snd .ProductQuiver.dom = dom

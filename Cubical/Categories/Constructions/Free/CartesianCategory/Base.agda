@@ -1,4 +1,5 @@
 {-# OPTIONS --safe #-}
+{-# OPTIONS --lossy-unification #-}
 module Cubical.Categories.Constructions.Free.CartesianCategory.Base where
 
 open import Cubical.Foundations.Prelude
@@ -31,12 +32,12 @@ open import Cubical.Categories.Displayed.Constructions.Weaken as Wk
 
 private
   variable
-    ℓQ ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' : Level
+    ℓQ ℓQ' ℓC ℓC' ℓCᴰ ℓCᴰ' ℓD ℓD' ℓDᴰ ℓDᴰ' : Level
 
-module _ (Q : ×Quiver ℓQ) where
+module _ (Q : ×Quiver ℓQ ℓQ') where
   open ProductQuiver
   private module Q = ×QuiverNotation Q
-  data Exp : Q.Ob → Q.Ob → Type ℓQ where
+  data Exp : Q.Ob → Q.Ob → Type (ℓ-max ℓQ ℓQ') where
     ↑ₑ_ : ∀ t → Exp (Q.Dom t) (Q.Cod t)
     idₑ : ∀{Γ} → Exp Γ Γ
     _⋆ₑ_ : ∀{Γ Γ' Γ''}(δ : Exp Γ Γ') → (δ' : Exp Γ' Γ'') →  Exp Γ Γ''
