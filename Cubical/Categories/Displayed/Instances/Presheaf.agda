@@ -69,25 +69,16 @@ module _ (C : Category ℓC ℓC') ℓSET ℓSETᴰ where
   PRESHEAFᴰ : Categoryᴰ (PresheafCategory C ℓSET) _ _
   PRESHEAFᴰ .ob[_] P = Presheafᴰ P
   PRESHEAFᴰ .Hom[_][_,_] α Pᴰ Qᴰ = NatTransᴰ α Pᴰ Qᴰ
-  PRESHEAFᴰ .idᴰ {x = P} {p = Pᴰ} = (λ Γ ϕ ϕᴰ → ϕᴰ) ,
-    λ {Γ = Γ} {Δ = Δ} f ϕ ϕᴰ →
-      --(λ i →
-      --   ⟨ Pᴰ.⟅ Γ , PresheafCategory C ℓSET .id .NatTrans.N-hom f i ϕ ⟆ ⟩)
-      subst (λ x → PathP (λ i → ⟨ Pᴰ.⟅ Γ , x i ϕ ⟆ ⟩) (Pᴰ.actionᴰ f _ ϕᴰ) (Pᴰ.actionᴰ f _ ϕᴰ))
-      (blll f) refl
-      --subst (λ x → PathP (λ i → x i) (Pᴰ.actionᴰ f _ ϕᴰ) (Pᴰ.actionᴰ f _ ϕᴰ))
-      --(test Γ Δ f ϕ ϕᴰ) refl {- toPathP (Pᴰ.⟅ Γ , _ ⟆ .snd ) -}
+  PRESHEAFᴰ .idᴰ {x = P} {p = Pᴰ} .fst Γ ϕ ϕᴰ = ϕᴰ
+  PRESHEAFᴰ .idᴰ {x = P} {p = Pᴰ} .snd {Γ = Γ} {Δ = Δ} f ϕ ϕᴰ =
+    subst (λ x →
+      PathP (λ i → ⟨ Pᴰ.⟅ _ , x i ϕ ⟆ ⟩)
+      (Pᴰ.actionᴰ f _ ϕᴰ) (Pᴰ.actionᴰ f _ ϕᴰ))
+    triv refl
     where
       module Pᴰ = PresheafᴰNotation P Pᴰ
-      --test : ∀ Γ Δ f ϕ ϕᴰ → {!⟨ Pᴰ.⟅ Γ , ? ⟆ ⟩!} ≡ {!!}
-      --test F Δ f ϕ ϕᴰ = {!!}
-      --arg : refl ∙ refl ≡ refl
-      --arg = sym compPathRefl
-      blll : ∀{Γ Δ} (f : C [ Γ , Δ ]) → refl ≡ PresheafCategory C ℓSET .id {x = P} .NatTrans.N-hom f
-      blll f = compPathRefl ∙ congS (λ x → refl ∙ x) compPathRefl
-      --subst (λ x → {!!})
-      --((P ⟅ Γ ⟆) .snd (ϕ ∘ᴾ⟨ C , P ⟩ f) {! ⟦ Δ ⟧!} {!!} {!!})
-      --refl
+      triv : refl ≡ PresheafCategory C ℓSET .id {x = P} .NatTrans.N-hom f
+      triv = compPathRefl ∙ congS (λ x → refl ∙ x) compPathRefl
   PRESHEAFᴰ ._⋆ᴰ_ = {!!}
   PRESHEAFᴰ .⋆IdLᴰ = {!!}
   PRESHEAFᴰ .⋆IdRᴰ = {!!}
