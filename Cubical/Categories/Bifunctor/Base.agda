@@ -77,6 +77,9 @@ infix 30 _⟪_⟫l
 infix 30 _⟪_⟫r
 -- same infix level as on objects since these will
 -- never be used in the same context
+infix 30 _⟪_,_⟫lr
+-- same infix level as on objects since these will
+-- never be used in the same context
 _⟪_⟫l : (F : Bifunctor C D E)
      → ∀ {c c' d}
      → C [ c , c' ]
@@ -88,6 +91,13 @@ _⟪_⟫r : (F : Bifunctor C D E)
      → D [ d , d' ]
      → E [(F ⟅ c , d ⟆b) , (F ⟅ c , d' ⟆b)]
 F ⟪ f ⟫r = Bif-homR F _ f
+
+_⟪_,_⟫lr : (F : Bifunctor C D E)
+     → ∀ {c c' d d'}
+     → C [ c , c' ]
+     → D [ d , d' ]
+     → E [(F ⟅ c , d ⟆b) , (F ⟅ c' , d' ⟆b)]
+_⟪_,_⟫lr {E = E} F f g = F ⟪ f ⟫l ⋆⟨ E ⟩ F ⟪ g ⟫r
 
 Fst : Bifunctor C D C
 Fst .Bif-ob = λ z _ → z
